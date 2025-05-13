@@ -1,15 +1,15 @@
 TSTZ33
-Total ST = 172182
-Total HT = 115370
-Total Transitions = 287552
+Total ST = 613867
+Total HT = 459293
+Total Transitions = 1073160
 
 TSTZ
-Total ST = 156205
-Total HT = 165623
-Total Transitions = 321828
+Total ST = 558270
+Total HT = 619629
+Total Transitions = 1177899
 
 zeroTT
-Total ST = 148132
-Total HT = 120450
-Total Transitions = 268582
+Total ST = 552854
+Total HT = 475163
+Total Transitions = 1028017
 
