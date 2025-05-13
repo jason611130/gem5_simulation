@@ -6,7 +6,7 @@ build/X86/gem5.opt --debug-flag=Cache configs/learning_gem5/part1/2cache.py > tr
 # 執行 100 次迴圈
 for i in {1..100}
 do
-    echo "========== 執行第 ${i+1}次 =========="
+    echo "========== 執行第 $i次 =========="
 
     # 執行分析與統計程式
     python3 group.py
