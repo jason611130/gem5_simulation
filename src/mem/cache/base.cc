@@ -295,8 +295,8 @@ BaseCache::handleTimingReqHit(PacketPtr pkt, CacheBlk *blk, Tick request_time)
         // the calculateAccessLatency() function.
         cpuSidePort.schedTimingResp(pkt, request_time);
     } else {
-        DPRINTF(Cache, "%s satisfied %s, no response needed\n", __func__,
-                pkt->print());
+        /*DPRINTF(Cache, "%s satisfied %s, no response needed\n", __func__,
+                pkt->print());*/
 
         // queue the packet for deletion, as the sending cache is
         // still relying on it; if the block is found in access(),
@@ -338,8 +338,8 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
                 // uncached memory write, forwarded to WriteBuffer.
                 allocateWriteBuffer(pkt, forward_time);
             } else {
-                DPRINTF(Cache, "%s coalescing MSHR for %s\n", __func__,
-                        pkt->print());
+                /*DPRINTF(Cache, "%s coalescing MSHR for %s\n", __func__,
+                        pkt->print());*/
 
                 assert(pkt->req->requestorId() < system->maxRequestors());
                 stats.cmdStats(pkt).mshrHits[pkt->req->requestorId()]++;
@@ -455,8 +455,8 @@ BaseCache::recvTimingReq(PacketPtr pkt)
         ppHit->notify(CacheAccessProbeArg(pkt,accessor));
 
         if (prefetcher && blk && blk->wasPrefetched()) {
-            DPRINTF(Cache, "Hit on prefetch for addr %#x (%s)\n",
-                    pkt->getAddr(), pkt->isSecure() ? "s" : "ns");
+            /*DPRINTF(Cache, "Hit on prefetch for addr %#x (%s)\n",
+                    pkt->getAddr(), pkt->isSecure() ? "s" : "ns");*/
             blk->clearPrefetched();
         }
 
@@ -502,12 +502,12 @@ BaseCache::recvTimingResp(PacketPtr pkt)
     const bool is_error = pkt->isError();
 
     if (is_error) {
-        DPRINTF(Cache, "%s: Cache received %s with error\n", __func__,
-                pkt->print());
+        /*DPRINTF(Cache, "%s: Cache received %s with error\n", __func__,
+                pkt->print());*/
     }
 
-    DPRINTF(Cache, "%s: Handling response %s\n", __func__,
-            pkt->print());
+    /*DPRINTF(Cache, "%s: Handling response %s\n", __func__,
+            pkt->print());*/
 
     // if this is a write, we should be looking at an uncacheable
     // write
@@ -554,8 +554,21 @@ BaseCache::recvTimingResp(PacketPtr pkt)
     CacheBlk *blk = tags->findBlock({pkt->getAddr(), pkt->isSecure()});
 
     if (is_fill && !is_error) {
-        DPRINTF(Cache, "Block for addr %#llx being updated in Cache\n",
-                pkt->getAddr());
+        const uint8_t* data = pkt->getConstPtr<uint8_t>();
+        std::string cacheName = name();
+        std::ostringstream data_str;
+
+        for (unsigned i = 0; i < pkt->getSize(); ++i)
+        data_str << std::hex << std::setw(2) << std::setfill('0') << (int)data[i];
+
+        std::string hex_data = data_str.str();  // ✅ 就是你要的字串
+        std::ostringstream msg;
+        // 可以印出來確認
+        msg << " Data = " << hex_data;
+        
+        if(cacheName=="system.l2cache"){
+            DPRINTF(Cache, "%s\n", msg.str());
+        }
 
         const bool allocate = (writeAllocator && mshr->wasWholeLineWrite) ?
             writeAllocator->allocate() : mshr->allocOnFill();
@@ -1255,8 +1268,8 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
     Cycles tag_latency(0);
     blk = tags->accessBlock(pkt, tag_latency);
 
-    DPRINTF(Cache, "%s for %s %s\n", __func__, pkt->print(),
-            blk ? "hit " + blk->print() : "miss");
+    /*DPRINTF(Cache, "%s for %s %s\n", __func__, pkt->print(),
+            blk ? "hit " + blk->print() : "miss");*/
 
     if (pkt->req->isCacheMaintenance()) {
         // A cache maintenance operation is always forwarded to the
@@ -1331,8 +1344,8 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         // any ordering/decisions about ownership already taken
         if (pkt->cmd == MemCmd::WritebackClean &&
             mshrQueue.findMatch(pkt->getAddr(), pkt->isSecure())) {
-            DPRINTF(Cache, "Clean writeback %#llx to block with MSHR, "
-                    "dropping\n", pkt->getAddr());
+            /*DPRINTF(Cache, "Clean writeback %#llx to block with MSHR, "
+                    "dropping\n", pkt->getAddr());*/
 
             // A writeback searches for the block, then writes the data.
             // As the writeback is being dropped, the data is not touched,
@@ -1381,7 +1394,7 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         assert(!pkt->needsResponse());
 
         updateBlockData(blk, pkt, has_old_data);
-        DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());
+        /*DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());*/
         incHitCount(pkt);
 
         // When the packet metadata arrives, the tag lookup will be done while
@@ -1456,7 +1469,7 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         assert(!pkt->needsResponse());
 
         updateBlockData(blk, pkt, has_old_data);
-        DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());
+        /*DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());*/
 
         incHitCount(pkt);
 
@@ -1549,8 +1562,8 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
             // current request and then get rid of it
             blk = tempBlock;
             tempBlock->insert({addr, is_secure});
-            DPRINTF(Cache, "using temp block for %#llx (%s)\n", addr,
-                    is_secure ? "s" : "ns");
+            /*DPRINTF(Cache, "using temp block for %#llx (%s)\n", addr,
+                    is_secure ? "s" : "ns");*/
         }
     } else {
         // existing block... probably an upgrade
@@ -1597,9 +1610,12 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
 
         }
     }
-
-    DPRINTF(Cache, "Block addr %#llx (%s) moving from %s to %s\n",
+    std::string cacheName = name();
+    if(cacheName=="system.l2cache"){
+        DPRINTF(Cache, "Block addr %#llx (%s) moving from %s to %s\n",
             addr, is_secure ? "s" : "ns", old_state, blk->print());
+    }
+    
 
     // if we got new data, copy it in (checking for a read response
     // and a response that has data is the same in the end)
@@ -1657,7 +1673,7 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
         return nullptr;
 
     // Print victim block's information
-    DPRINTF(CacheRepl, "Replacement victim: %s\n", victim->print());
+    /*DPRINTF(CacheRepl, "Replacement victim: %s\n", victim->print());*/
 
     // Try to evict blocks; if it fails, give up on allocation
     if (!handleEvictions(evict_blks, writebacks)) {
@@ -1728,9 +1744,9 @@ BaseCache::writebackBlk(CacheBlk *blk)
         new Packet(req, blk->isSet(CacheBlk::DirtyBit) ?
                    MemCmd::WritebackDirty : MemCmd::WritebackClean);
 
-    DPRINTF(Cache, "Create Writeback %s writable: %d, dirty: %d\n",
+    /*DPRINTF(Cache, "Create Writeback %s writable: %d, dirty: %d\n",
         pkt->print(), blk->isSet(CacheBlk::WritableBit),
-        blk->isSet(CacheBlk::DirtyBit));
+        blk->isSet(CacheBlk::DirtyBit));*/
 
     if (blk->isSet(CacheBlk::WritableBit)) {
         // not asserting shared means we pass the block in modified
@@ -1774,8 +1790,8 @@ BaseCache::writecleanBlk(CacheBlk *blk, Request::Flags dest, PacketId id)
         pkt->setWriteThrough();
     }
 
-    DPRINTF(Cache, "Create %s writable: %d, dirty: %d\n", pkt->print(),
-            blk->isSet(CacheBlk::WritableBit), blk->isSet(CacheBlk::DirtyBit));
+    /*DPRINTF(Cache, "Create %s writable: %d, dirty: %d\n", pkt->print(),
+            blk->isSet(CacheBlk::WritableBit), blk->isSet(CacheBlk::DirtyBit));*/
 
     if (blk->isSet(CacheBlk::WritableBit)) {
         // not asserting shared means we pass the block in modified
@@ -1888,7 +1904,7 @@ BaseCache::sendMSHRQueuePacket(MSHR* mshr)
     // use request from 1st target
     PacketPtr tgt_pkt = mshr->getTarget()->pkt;
 
-    DPRINTF(Cache, "%s: MSHR %s\n", __func__, tgt_pkt->print());
+    /*DPRINTF(Cache, "%s: MSHR %s\n", __func__, tgt_pkt->print());*/
 
     // if the cache is in write coalescing mode or (additionally) in
     // no allocation mode, and we have a write packet with an MSHR
@@ -1991,7 +2007,7 @@ BaseCache::sendWriteQueuePacket(WriteQueueEntry* wq_entry)
     // always a single target for write queue entries
     PacketPtr tgt_pkt = wq_entry->getTarget()->pkt;
 
-    DPRINTF(Cache, "%s: write %s\n", __func__, tgt_pkt->print());
+    /*DPRINTF(Cache, "%s: write %s\n", __func__, tgt_pkt->print());*/
 
     // forward as is, both for evictions and uncacheable writes
     if (!memSidePort.sendTimingReq(tgt_pkt)) {
@@ -2730,13 +2746,13 @@ WriteAllocator::updateMode(Addr write_addr, unsigned write_size,
             if (mode == WriteMode::ALLOCATE &&
                 byteCount > coalesceLimit) {
                 mode = WriteMode::COALESCE;
-                DPRINTF(Cache, "Switched to write coalescing\n");
+                /*DPRINTF(Cache, "Switched to write coalescing\n");*/
             } else if (mode == WriteMode::COALESCE &&
                        byteCount > noAllocateLimit) {
                 // and continue and switch to non-allocating mode if we
                 // pass the upper threshold
                 mode = WriteMode::NO_ALLOCATE;
-                DPRINTF(Cache, "Switched to write-no-allocate\n");
+                /*DPRINTF(Cache, "Switched to write-no-allocate\n");*/
             }
         }
     } else {

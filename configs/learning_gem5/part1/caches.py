@@ -71,7 +71,7 @@ class L1ICache(L1Cache):
     """Simple L1 instruction cache with default values"""
 
     # Set the default size
-    size = "16KiB"
+    size = "64KiB"
 
     SimpleOpts.add_option(
         "--l1i_size", help=f"L1 instruction cache size. Default: {size}"
@@ -113,8 +113,8 @@ class L2Cache(Cache):
     """Simple L2 Cache with default values"""
 
     # Default parameters
-    size = "256KiB"
-    assoc = 8
+    size = "2MiB"
+    assoc = 4
     tag_latency = 20
     data_latency = 20
     response_latency = 20

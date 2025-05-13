@@ -1,0 +1,3 @@
+Total ST = 148132
+Total HT = 120450
+Total Transitions = 268582

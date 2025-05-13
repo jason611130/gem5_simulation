@@ -1,0 +1,15 @@
+TSTZ33
+Total ST = 172182
+Total HT = 115370
+Total Transitions = 287552
+
+TSTZ
+Total ST = 156205
+Total HT = 165623
+Total Transitions = 321828
+
+zeroTT
+Total ST = 148132
+Total HT = 120450
+Total Transitions = 268582
+

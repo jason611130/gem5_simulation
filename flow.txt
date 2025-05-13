@@ -1,0 +1,8 @@
+build/X86/gem5.opt --debug-flag=Cache configs/learning_gem5/part1/2cache.py > trace_mcf.txt
+python3 group.py
+python3 Bin_Ter.py
+python3 Bin_Oct.py
+python3 countzeroTT.py
+python3 countTSTZ.py
+python3 countTSTZ33.py
+python3 save_count.py

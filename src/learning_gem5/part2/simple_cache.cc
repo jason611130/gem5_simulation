@@ -288,50 +288,62 @@ SimpleCache::accessTiming(PacketPtr pkt)
             pkt->print());
 
     if (hit) {
-        // Respond to the CPU side
-        stats.hits++; // update stats
+        // Cache Hit 處理：回傳資料給 CPU
+        stats.hits++; // 更新 hit 計數
         DDUMP(SimpleCache, pkt->getConstPtr<uint8_t>(), pkt->getSize());
         pkt->makeResponse();
         sendResponse(pkt);
     } else {
-        stats.misses++; // update stats
+        // Cache Miss 處理
+        stats.misses++; // 更新 miss 計數
         missTime = curTick();
-        // Forward to the memory side.
-        // We can't directly forward the packet unless it is exactly the size
-        // of the cache line, and aligned. Check for that here.
+
+        // ✅ 額外加上 debug 印出 MISS 的地址與資料
+        DPRINTF(SimpleCache, "Cache MISS at address: %#x, size: %u\n",
+                pkt->getAddr(), pkt->getSize());
+
+        DDUMP(SimpleCache, pkt->getConstPtr<uint8_t>(), pkt->getSize());
+
+        std::cout << "[Cache MISS] Addr = 0x" << std::hex << pkt->getAddr()
+                  << ", Size = " << std::dec << pkt->getSize() << ", Data = ";
+        const uint8_t* data = pkt->getConstPtr<uint8_t>();
+        for (unsigned i = 0; i < pkt->getSize(); ++i)
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)data[i] << " ";
+        std::cout << std::dec << std::endl;
+
+        // 檢查是否為整齊對齊且大小等於 blockSize
         Addr addr = pkt->getAddr();
         Addr block_addr = pkt->getBlockAddr(blockSize);
         unsigned size = pkt->getSize();
+
         if (addr == block_addr && size == blockSize) {
-            // Aligned and block size. We can just forward.
+            // 若已對齊且大小正確，直接轉發到 memory
             DPRINTF(SimpleCache, "forwarding packet\n");
             memPort.sendPacket(pkt);
         } else {
+            // 需要將封包升級為整個 cache block 大小
             DPRINTF(SimpleCache, "Upgrading packet to block size\n");
             panic_if(addr - block_addr + size > blockSize,
                      "Cannot handle accesses that span multiple cache lines");
-            // Unaligned access to one cache block
+
             assert(pkt->needsResponse());
             MemCmd cmd;
             if (pkt->isWrite() || pkt->isRead()) {
-                // Read the data from memory to write into the block.
-                // We'll write the data in the cache (i.e., a writeback cache)
                 cmd = MemCmd::ReadReq;
             } else {
                 panic("Unknown packet type in upgrade size");
             }
 
-            // Create a new packet that is blockSize
+            // 建立一個新的封包，大小為 blockSize
             PacketPtr new_pkt = new Packet(pkt->req, cmd, blockSize);
             new_pkt->allocate();
 
-            // Should now be block aligned
             assert(new_pkt->getAddr() == new_pkt->getBlockAddr(blockSize));
 
-            // Save the old packet
+            // 記住原始封包
             originalPacket = pkt;
 
-            DPRINTF(SimpleCache, "forwarding packet\n");
+            DPRINTF(SimpleCache, "forwarding upgraded packet\n");
             memPort.sendPacket(new_pkt);
         }
     }
